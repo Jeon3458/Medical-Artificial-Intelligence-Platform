@@ -1782,7 +1782,12 @@ class MedicalVectorStore:
         logger.info(f"{store_path}에서 벡터 스토어 로드 중...")
         
         try:
-            vectorstore = FAISS.load_local(store_path, self.embeddings)
+            # allow_dangerous_deserialization=True 옵션 추가
+            vectorstore = FAISS.load_local(
+                store_path, 
+                self.embeddings, 
+                allow_dangerous_deserialization=True
+            )
             logger.info("벡터 스토어 로드 완료")
             return vectorstore
         except Exception as e:
@@ -2219,11 +2224,19 @@ def main():
     # # 4. 통합 벡터 스토어 생성
     # vectorstore = vector_store.create_vector_store(documents)
     
-    # 5. 검색 테스트
+
+    # 벡터 스토어 객체 초기화
+    vs_builder = MedicalVectorStore()
+    
+    # 기존 벡터 스토어 로드
+    logger.info("벡터 스토어 로드 중...")
+    vectorstore = vs_builder.load_vector_store("medical_vector_store")
+    
     if vectorstore:
         # 기본 검색
         query = "고혈압 환자의 최근 혈압 측정 기록"
-        results = vector_store.search_similar_documents(query, vectorstore, k=3)
+        # 여기서 변수명 수정 (vector_store -> vs_builder)
+        results = vs_builder.search_similar_documents(query, vectorstore, k=3)
         
         print(f"\n기본 검색 쿼리: {query}")
         print(f"검색 결과 ({len(results)}개):")
@@ -2236,7 +2249,8 @@ def main():
         
         # 고급 검색
         query = "60세 이상 남성 환자 중 심장 질환과 당뇨병을 동시에 가진 환자"
-        advanced_results = vector_store.advanced_medical_search(
+        # 여기서도 변수명 수정 (vector_store -> vs_builder)
+        advanced_results = vs_builder.advanced_medical_search(
             query, 
             vectorstore, 
             age_filter=(60, 100), 
@@ -2257,30 +2271,14 @@ def main():
         
         # 의미론적 질의 확장 검색
         query = "흉부 증상이 있는 환자"
-        expanded_query = vector_store.semantic_medical_query_expansion(query)
-        semantic_results = vector_store.search_similar_documents(expanded_query, vectorstore, k=3)
+        # 여기서도 변수명 수정 (vector_store -> vs_builder)
+        expanded_query = vs_builder.semantic_medical_query_expansion(query)
+        semantic_results = vs_builder.search_similar_documents(expanded_query, vectorstore, k=3)
         
         print(f"\n의미론적 질의 확장 검색 쿼리: {query}")
         print(f"확장된 쿼리: {expanded_query}")
         print(f"검색 결과 ({len(semantic_results)}개):")
         for i, doc in enumerate(semantic_results, 1):
-            print(f"\n결과 {i}:")
-            print(f"환자 ID: {doc.metadata.get('patient_id', '알 수 없음')}")
-            print(f"내용 미리보기: {doc.page_content[:200]}...")
-            print("-" * 50)
-        
-        # 환자 사례 기반 검색
-        patient_description = """
-        62세 남성 환자, 고혈압과 당뇨병 병력 있음. 
-        최근 흉통, 호흡곤란, 발한 증상으로 응급실 내원.
-        """
-        
-        case_results = vector_store.clinical_case_search(vectorstore, patient_description)
-        
-        print(f"\n환자 사례 기반 검색:")
-        print(f"검색 사례: {patient_description}")
-        print(f"검색 결과 ({len(case_results)}개):")
-        for i, doc in enumerate(case_results, 1):
             print(f"\n결과 {i}:")
             print(f"환자 ID: {doc.metadata.get('patient_id', '알 수 없음')}")
             print(f"내용 미리보기: {doc.page_content[:200]}...")
