@@ -1,0 +1,102 @@
+[
+  {
+    "id": "P301",
+    "name": "이영1",
+    "age": 32,
+    "gender": "여",
+    "medication": "타이레놀 500mg",
+    "dosage": "1일 2회",
+    "duration": "2주",
+    "prescribed_date": "2025-04-01"
+  },
+  {
+    "id": "P302",
+    "name": "이영2",
+    "age": 34,
+    "gender": "남",
+    "medication": "암로디핀 5mg",
+    "dosage": "1일 3회",
+    "duration": "3주",
+    "prescribed_date": "2025-04-02"
+  },
+  {
+    "id": "P303",
+    "name": "이영3",
+    "age": 36,
+    "gender": "여",
+    "medication": "메트포르민 500mg",
+    "dosage": "1일 1회",
+    "duration": "4주",
+    "prescribed_date": "2025-04-03"
+  },
+  {
+    "id": "P304",
+    "name": "이영4",
+    "age": 38,
+    "gender": "남",
+    "medication": "아스피린 100mg",
+    "dosage": "1일 2회",
+    "duration": "5주",
+    "prescribed_date": "2025-04-04"
+  },
+  {
+    "id": "P305",
+    "name": "이영5",
+    "age": 40,
+    "gender": "여",
+    "medication": "타이레놀 500mg",
+    "dosage": "1일 3회",
+    "duration": "6주",
+    "prescribed_date": "2025-04-05"
+  },
+  {
+    "id": "P306",
+    "name": "이영6",
+    "age": 42,
+    "gender": "남",
+    "medication": "암로디핀 5mg",
+    "dosage": "1일 1회",
+    "duration": "7주",
+    "prescribed_date": "2025-04-06"
+  },
+  {
+    "id": "P307",
+    "name": "이영7",
+    "age": 44,
+    "gender": "여",
+    "medication": "메트포르민 500mg",
+    "dosage": "1일 2회",
+    "duration": "8주",
+    "prescribed_date": "2025-04-07"
+  },
+  {
+    "id": "P308",
+    "name": "이영8",
+    "age": 46,
+    "gender": "남",
+    "medication": "아스피린 100mg",
+    "dosage": "1일 3회",
+    "duration": "9주",
+    "prescribed_date": "2025-04-08"
+  },
+  {
+    "id": "P309",
+    "name": "이영9",
+    "age": 48,
+    "gender": "여",
+    "medication": "타이레놀 500mg",
+    "dosage": "1일 1회",
+    "duration": "10주",
+    "prescribed_date": "2025-04-09"
+  },
+  {
+    "id": "P310",
+    "name": "이영10",
+    "age": 50,
+    "gender": "남",
+    "medication": "암로디핀 5mg",
+    "dosage": "1일 2회",
+    "duration": "11주",
+    "prescribed_date": "2025-04-10"
+  }
+]

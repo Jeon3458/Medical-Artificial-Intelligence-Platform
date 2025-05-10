@@ -1,0 +1,102 @@
+[
+  {
+    "id": "T401",
+    "name": "박민1",
+    "age": 23,
+    "gender": "남",
+    "symptoms": "복통",
+    "temperature": "37.0",
+    "blood_pressure": "113/72",
+    "visit_time": "2025-05-10 10:00"
+  },
+  {
+    "id": "T402",
+    "name": "박민2",
+    "age": 26,
+    "gender": "여",
+    "symptoms": "발열",
+    "temperature": "37.5",
+    "blood_pressure": "116/74",
+    "visit_time": "2025-05-10 11:00"
+  },
+  {
+    "id": "T403",
+    "name": "박민3",
+    "age": 29,
+    "gender": "남",
+    "symptoms": "기침",
+    "temperature": "36.5",
+    "blood_pressure": "119/76",
+    "visit_time": "2025-05-10 12:00"
+  },
+  {
+    "id": "T404",
+    "name": "박민4",
+    "age": 32,
+    "gender": "여",
+    "symptoms": "근육통",
+    "temperature": "37.0",
+    "blood_pressure": "122/78",
+    "visit_time": "2025-05-10 13:00"
+  },
+  {
+    "id": "T405",
+    "name": "박민5",
+    "age": 35,
+    "gender": "남",
+    "symptoms": "두통",
+    "temperature": "37.5",
+    "blood_pressure": "125/80",
+    "visit_time": "2025-05-10 14:00"
+  },
+  {
+    "id": "T406",
+    "name": "박민6",
+    "age": 38,
+    "gender": "여",
+    "symptoms": "복통",
+    "temperature": "36.5",
+    "blood_pressure": "128/82",
+    "visit_time": "2025-05-10 15:00"
+  },
+  {
+    "id": "T407",
+    "name": "박민7",
+    "age": 41,
+    "gender": "남",
+    "symptoms": "발열",
+    "temperature": "37.0",
+    "blood_pressure": "131/84",
+    "visit_time": "2025-05-10 16:00"
+  },
+  {
+    "id": "T408",
+    "name": "박민8",
+    "age": 44,
+    "gender": "여",
+    "symptoms": "기침",
+    "temperature": "37.5",
+    "blood_pressure": "134/86",
+    "visit_time": "2025-05-10 17:00"
+  },
+  {
+    "id": "T409",
+    "name": "박민9",
+    "age": 47,
+    "gender": "남",
+    "symptoms": "근육통",
+    "temperature": "36.5",
+    "blood_pressure": "137/88",
+    "visit_time": "2025-05-10 18:00"
+  },
+  {
+    "id": "T410",
+    "name": "박민10",
+    "age": 50,
+    "gender": "여",
+    "symptoms": "두통",
+    "temperature": "37.0",
+    "blood_pressure": "140/90",
+    "visit_time": "2025-05-10 19:00"
+  }
+]
