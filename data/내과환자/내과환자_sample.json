@@ -1,0 +1,102 @@
+[
+  {
+    "id": "I101",
+    "name": "홍길1",
+    "age": 51,
+    "gender": "여",
+    "diagnosis": "당뇨병",
+    "prescription": "메트포르민 500mg",
+    "blood_pressure": "125/82",
+    "visit_date": "2025-04-01"
+  },
+  {
+    "id": "I102",
+    "name": "홍길2",
+    "age": 52,
+    "gender": "남",
+    "diagnosis": "고지혈증",
+    "prescription": "아토르바스타틴 10mg",
+    "blood_pressure": "130/84",
+    "visit_date": "2025-04-02"
+  },
+  {
+    "id": "I103",
+    "name": "홍길3",
+    "age": 53,
+    "gender": "여",
+    "diagnosis": "고혈압",
+    "prescription": "암로디핀 5mg",
+    "blood_pressure": "135/86",
+    "visit_date": "2025-04-03"
+  },
+  {
+    "id": "I104",
+    "name": "홍길4",
+    "age": 54,
+    "gender": "남",
+    "diagnosis": "당뇨병",
+    "prescription": "메트포르민 500mg",
+    "blood_pressure": "140/88",
+    "visit_date": "2025-04-04"
+  },
+  {
+    "id": "I105",
+    "name": "홍길5",
+    "age": 55,
+    "gender": "여",
+    "diagnosis": "고지혈증",
+    "prescription": "아토르바스타틴 10mg",
+    "blood_pressure": "145/90",
+    "visit_date": "2025-04-05"
+  },
+  {
+    "id": "I106",
+    "name": "홍길6",
+    "age": 56,
+    "gender": "남",
+    "diagnosis": "고혈압",
+    "prescription": "암로디핀 5mg",
+    "blood_pressure": "150/92",
+    "visit_date": "2025-04-06"
+  },
+  {
+    "id": "I107",
+    "name": "홍길7",
+    "age": 57,
+    "gender": "여",
+    "diagnosis": "당뇨병",
+    "prescription": "메트포르민 500mg",
+    "blood_pressure": "155/94",
+    "visit_date": "2025-04-07"
+  },
+  {
+    "id": "I108",
+    "name": "홍길8",
+    "age": 58,
+    "gender": "남",
+    "diagnosis": "고지혈증",
+    "prescription": "아토르바스타틴 10mg",
+    "blood_pressure": "160/96",
+    "visit_date": "2025-04-08"
+  },
+  {
+    "id": "I109",
+    "name": "홍길9",
+    "age": 59,
+    "gender": "여",
+    "diagnosis": "고혈압",
+    "prescription": "암로디핀 5mg",
+    "blood_pressure": "165/98",
+    "visit_date": "2025-04-09"
+  },
+  {
+    "id": "I110",
+    "name": "홍길10",
+    "age": 60,
+    "gender": "남",
+    "diagnosis": "당뇨병",
+    "prescription": "메트포르민 500mg",
+    "blood_pressure": "170/100",
+    "visit_date": "2025-04-10"
+  }
+]
