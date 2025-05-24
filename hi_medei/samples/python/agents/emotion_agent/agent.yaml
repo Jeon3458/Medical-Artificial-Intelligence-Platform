@@ -1,0 +1,35 @@
+id: emotion-analysis-agent
+name: Korean Emotion Analysis Agent
+description: 한국어 문장의 감정을 분석하고, 위험도를 판단하여 적절한 조치를 제안하는 에이전트입니다.
+version: 1.0.0
+language: ko
+type: REST
+entry_point: http://localhost:8000/a2a  #실제 배포 후 여기를 외부 주소로 바꿔야 함
+input:
+  type: object
+  properties:
+    input:
+      type: string
+      description: 감정을 분석할 한국어 문장
+output:
+  type: object
+  properties:
+    status:
+      type: string
+    output:
+      type: object
+      properties:
+        emotion:
+          type: string
+        risk_level:
+          type: string
+        flag:
+          type: boolean
+        comment:
+          type: string
+        recommendation:
+          type: string
+tags:
+  - emotion
+  - korean
+  - mental health
