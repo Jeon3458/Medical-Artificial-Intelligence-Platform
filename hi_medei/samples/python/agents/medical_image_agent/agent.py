@@ -38,7 +38,7 @@ class SimplifiedMedicalImageAgent:
     
     async def analyze_image(self, request: ImageAnalysisRequest) -> ImageAnalysisResult:
         """
-        간소화된 이미지 분석 - OpenAI Vision Pipeline로 위임
+        이미지 분석 - OpenAI Vision Pipeline로 위임
         """
         try:
             start_time = time.time()
@@ -96,11 +96,8 @@ class SimplifiedMedicalImageAgent:
 
 현재 OpenAI Vision API 기반으로 의료 영상을 분석합니다.
 - 실시간 이미지 분석
-- HyperCLOVAX와 연동한 종합 의료 소견
-- A2A 프로토콜 지원
 
-상세한 의료 영상 분석은 OpenAI Vision Pipeline을 통해 제공됩니다.
-의료진의 판단을 보조하는 목적이며, 최종 진단은 전문의가 수행해야 합니다.
+상세한 의료 영상 분석은 OpenAI Vision API를 통해 제공됩니다.
 """
     
     def get_agent_info(self) -> Dict[str, Any]:
@@ -112,13 +109,11 @@ class SimplifiedMedicalImageAgent:
             "version": "1.0.0",
             "capabilities": [
                 "openai_vision_analysis",
-                "hyperclovax_integration", 
-                "a2a_protocol_support"
             ],
             "supported_modalities": [
                 "X-Ray", "CT", "MRI", "Ultrasound"
             ],
-            "ai_backend": "OpenAI Vision API + HyperCLOVAX",
+            "ai_backend": "OpenAI Vision API",
             "status": "active"
         }
     
@@ -126,8 +121,3 @@ class SimplifiedMedicalImageAgent:
         """에이전트 종료"""
         self.logger.info(f"Simplified Medical Image Agent 종료: {self.agent_id}")
 
-
-# 편의를 위한 팩토리 함수
-def create_simplified_medical_image_agent(agent_id: str = None) -> SimplifiedMedicalImageAgent:
-    """간소화된 의료 영상 분석 에이전트 생성"""
-    return SimplifiedMedicalImageAgent(agent_id=agent_id) 

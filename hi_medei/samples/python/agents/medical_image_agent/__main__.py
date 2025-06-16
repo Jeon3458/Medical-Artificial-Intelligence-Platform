@@ -42,7 +42,7 @@ def create_agent_card() -> AgentCard:
     """의료 영상 분석 에이전트 카드 생성"""
     return AgentCard(
         name="Medical Image Analysis Agent",
-        description="OpenAI Vision API와 HyperCLOVAX를 사용한 의료 영상 분석 에이전트",
+        description="OpenAI Vision API를 사용한 의료 영상 분석 에이전트",
         url="http://localhost:10002",
         provider=AgentProvider(
             organization="Medical AI Lab"

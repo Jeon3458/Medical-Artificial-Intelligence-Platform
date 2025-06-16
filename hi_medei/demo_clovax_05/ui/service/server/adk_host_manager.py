@@ -1098,13 +1098,9 @@ class ADKHostManager(ApplicationManager):
         self._initialize_host()
 
     def register_pdf_agent(self):
-        """PDF QA 에이전트를 자동으로 등록"""
-        try:
-            pdf_agent_url = "http://localhost:10000"
-            self.register_agent(pdf_agent_url)
-            print(f"[A2A] PDF QA Agent 등록 완료: {pdf_agent_url}")
-        except Exception as e:
-            print(f"[A2A] PDF QA Agent 등록 실패: {e}")
+        """PDF QA 에이전트 자동 등록 비활성화 - A2A 협업으로 처리"""
+        # PDF QA 기능은 A2A 협업을 통해 자동으로 처리되므로 별도 등록 불필요
+        print(f"[A2A] PDF QA 기능은 에이전트 협업으로 처리됩니다.")
 
     def register_medical_image_agent(self):
         """Medical Image Agent를 자동으로 등록"""

@@ -16,7 +16,7 @@ from pages.agent_list import agent_list_page
 from pages.conversation import conversation_page
 from pages.event_list import event_list_page
 from pages.home import home_page_content
-from pages.pdf_qa import pdf_qa_page
+
 from pages.settings import settings_page_content
 from pages.task_list import task_list_page
 from service.server.server import ConversationServer
@@ -48,8 +48,9 @@ def on_load(e: me.LoadEvent):  # pylint: disable=unused-argument
     elif api_key:
         state.api_key = api_key
     else:
-        # Show the API key dialog if both are not set
-        state.api_key_dialog_open = True
+        # HyperCLOVAX 사용하므로 Google API Key 불필요 - 다이얼로그 표시 안함
+        state.api_key = "hyperclovax_mode"  # 더미 값으로 설정
+        state.api_key_dialog_open = False
 
 
 # Policy to allow the lit custom element to load
@@ -135,17 +136,7 @@ def task_page():
     task_list_page(me.state(AppState))
 
 
-@me.page(
-    path='/pdf_qa',
-    title='PDF QA Agent',
-    on_load=on_load,
-    security_policy=security_policy,
-)
-def pdf_qa():
-    """PDF QA Agent Page."""
-    api_key_dialog()
-    with page_scaffold():
-        pdf_qa_page(me.state(AppState))
+
 
 
 # Setup the server global objects

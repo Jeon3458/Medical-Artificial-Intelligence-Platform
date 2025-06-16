@@ -267,13 +267,16 @@ async def send_image_message_auto(e: me.ClickEvent):
         print('Conversation id ', state.conversation_id, ' not found')
         return
     
+    # 기본 메시지가 없으면 "Analyze the image" 사용
+    message_text = state.message_content.strip() if state.message_content else "Analyze the image"
+    
     # 이미지 파일과 텍스트 메시지 생성
     message_id = str(uuid.uuid4())
     request = Message(
         id=message_id,
         role='user',
         parts=[
-            TextPart(text=state.message_content or f"업로드된 의료 영상을 분석해주세요: {image_data['filename']}"),
+            TextPart(text=message_text),
             FilePart(
                 file=FileContent(
                     name=image_data['filename'],
@@ -302,8 +305,10 @@ async def send_image_message_auto(e: me.ClickEvent):
     # 메시지 전송
     response = await SendMessage(request)
     
-    # 전송 후 임시 데이터 정리
+    # 전송 후 상태 정리
     state.message_content = ''
+    state.uploaded_image_name = ''
+    state.show_image_alert = False
     app_state.temp_image_data.clear()
 
 
@@ -319,25 +324,7 @@ def toggle_image_uploader(e: me.ClickEvent):
     state.show_image_uploader = not state.show_image_uploader
 
 
-async def quick_analyze_abnormal(e: me.ClickEvent):
-    """이상 소견 퀵 분석"""
-    state = me.state(PageState)
-    state.message_content = "이상 소견이 있는지 확인해주세요"
-    await send_image_message_auto(e)
 
-
-async def quick_analyze_urgency(e: me.ClickEvent):
-    """응급도 평가 퀵 분석"""
-    state = me.state(PageState)
-    state.message_content = "응급도를 평가해주세요"
-    await send_image_message_auto(e)
-
-
-async def quick_analyze_quality(e: me.ClickEvent):
-    """영상 품질 평가 퀵 분석"""
-    state = me.state(PageState)
-    state.message_content = "영상 품질을 평가해주세요"
-    await send_image_message_auto(e)
 
 
 def clear_uploaded_image(e: me.ClickEvent):
@@ -436,148 +423,60 @@ def conversation():
                 on_upload=on_pdf_upload
             )
         
-        # 업로드된 이미지 미리보기 및 분석 UI (기존 LLM 서비스 스타일)
+        # 업로드된 이미지 미리보기 (오른쪽 끝에 배치)
         if page_state.uploaded_image_name and app_state.temp_image_data:
             # 가장 최근 업로드된 이미지 데이터 가져오기
             image_data = list(app_state.temp_image_data.values())[-1]
             
             with me.box(
                 style=me.Style(
-                    padding=me.Padding.all(16),
-                    margin=me.Margin(bottom=16),
-                    background=me.theme_var('surface'),
-                    border_radius=12,
-                    border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline'))),
-                    box_shadow="0 2px 8px rgba(0,0,0,0.1)"
+                    display='flex',
+                    justify_content='flex-end',
+                    margin=me.Margin(bottom=16)
                 )
             ):
                 with me.box(
                     style=me.Style(
-                        display='flex',
-                        flex_direction='row',
-                        gap=16,
-                        align_items='flex-start'
+                        padding=me.Padding.all(12),
+                        background=me.theme_var('surface'),
+                        border_radius=8,
+                        border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline'))),
+                        max_width=300
                     )
                 ):
-                    # 이미지 미리보기 (왼쪽)
+                    # 이미지 표시 (base64 데이터 사용)
                     with me.box(
                         style=me.Style(
-                            flex_grow=1,
-                            max_width=400
+                            width="100%",
+                            height=150,
+                            background=f"url(data:{image_data['mime_type']};base64,{image_data['base64']}) center/contain no-repeat",
+                            border_radius=6,
+                            border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline-variant')))
                         )
                     ):
-                        # 이미지 표시 (base64 데이터 사용)
-                        with me.box(
-                            style=me.Style(
-                                width="100%",
-                                height=200,
-                                background=f"url(data:{image_data['mime_type']};base64,{image_data['base64']}) center/contain no-repeat",
-                                border_radius=8,
-                                border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline-variant')))
-                            )
-                        ):
-                            pass
-                        
-                        # 파일 정보
-                        me.text(
-                            f"📁 {image_data['filename']}",
-                            style=me.Style(
-                                font_size=14,
-                                color=me.theme_var('on-surface-variant'),
-                                margin=me.Margin(top=8)
-                            )
-                        )
-                        me.text(
-                            f"📐 크기: {image_data.get('size', 'Unknown')} bytes",
-                            style=me.Style(
-                                font_size=12,
-                                color=me.theme_var('on-surface-variant')
-                            )
-                        )
+                        pass
                     
-                    # 분석 버튼 및 옵션 (오른쪽)
-                    with me.box(
+                    # 파일 정보
+                    me.text(
+                        f"📁 {image_data['filename']}",
                         style=me.Style(
-                            display='flex',
-                            flex_direction='column',
-                            gap=12,
-                            min_width=200
+                            font_size=12,
+                            color=me.theme_var('on-surface-variant'),
+                            margin=me.Margin(top=8)
+                        )
+                    )
+                    
+                    # 이미지 삭제 버튼
+                    with me.content_button(
+                        type='flat',
+                        on_click=clear_uploaded_image,
+                        style=me.Style(
+                            color=me.theme_var('error'),
+                            margin=me.Margin(top=4),
+                            font_size=11
                         )
                     ):
-                        # Analyze the image 버튼 (기존 LLM 서비스 스타일)
-                        with me.content_button(
-                            type='flat',
-                            on_click=send_image_message_auto,
-                            style=me.Style(
-                                background=me.theme_var('primary'),
-                                color=me.theme_var('on-primary'),
-                                border_radius=6,
-                                padding=me.Padding.all(12),
-                                width="100%",
-                                font_weight="500"
-                            )
-                        ):
-                            me.text("Analyze the image")
-                        
-                        # 추가 옵션들
-                        me.text(
-                            "🔍 분석 옵션:",
-                            style=me.Style(
-                                font_size=14,
-                                font_weight="500",
-                                color=me.theme_var('on-surface')
-                            )
-                        )
-                        
-                        # 퀵 분석 버튼들
-                        with me.content_button(
-                            type='flat',
-                            on_click=quick_analyze_abnormal,
-                            style=me.Style(
-                                border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline'))),
-                                border_radius=4,
-                                padding=me.Padding.all(8),
-                                margin=me.Margin(bottom=4),
-                                width="100%"
-                            )
-                        ):
-                            me.text("🏥 이상 소견 검사", style=me.Style(font_size=12))
-                        
-                        with me.content_button(
-                            type='flat',
-                            on_click=quick_analyze_urgency,
-                            style=me.Style(
-                                border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline'))),
-                                border_radius=4,
-                                padding=me.Padding.all(8),
-                                margin=me.Margin(bottom=4),
-                                width="100%"
-                            )
-                        ):
-                            me.text("🚨 응급도 평가", style=me.Style(font_size=12))
-                        
-                        with me.content_button(
-                            type='flat',
-                            on_click=quick_analyze_quality,
-                            style=me.Style(
-                                border=me.Border.all(me.BorderSide(width=1, color=me.theme_var('outline'))),
-                                border_radius=4,
-                                padding=me.Padding.all(8),
-                                width="100%"
-                            )
-                        ):
-                            me.text("📊 품질 평가", style=me.Style(font_size=12))
-                        
-                        # 이미지 삭제 버튼
-                        with me.content_button(
-                            type='flat',
-                            on_click=clear_uploaded_image,
-                            style=me.Style(
-                                color=me.theme_var('error'),
-                                margin=me.Margin(top=8)
-                            )
-                        ):
-                            me.text("🗑️ 이미지 삭제", style=me.Style(font_size=12))
+                        me.text("🗑️ 이미지 삭제")
 
         # 이미지 업로더 (이미지가 없을 때만 표시)
         elif page_state.show_image_uploader:
@@ -655,12 +554,17 @@ def conversation():
             ):
                 with me.tooltip(message="PDF 파일 업로드"):
                     me.icon(icon='description')
-            # 메시지 전송 버튼 (이미지가 있으면 이미지와 함께 전송)
+            # 메시지 전송 버튼 (이미지가 있으면 이미지와 함께 전송, 없으면 일반 텍스트 전송)
             with me.content_button(
                 type='flat',
-                on_click=send_image_message_auto,
+                on_click=send_image_message_auto if (page_state.uploaded_image_name and app_state.temp_image_data) else send_message_button,
                 style=me.Style(
                     color=me.theme_var('primary')
                 ),
             ):
-                me.icon(icon='send')
+                if page_state.uploaded_image_name and app_state.temp_image_data:
+                    with me.tooltip(message="이미지와 함께 메시지 전송"):
+                        me.icon(icon='camera_alt')
+                else:
+                    with me.tooltip(message="메시지 전송"):
+                        me.icon(icon='send')

@@ -12,7 +12,6 @@ from styles.styles import (
 page_json = [
     {'display': 'Home', 'icon': 'message', 'route': '/'},
     {'display': 'Agents', 'icon': 'smart_toy', 'route': '/agents'},
-    {'display': 'PDF QA', 'icon': 'article', 'route': '/pdf_qa'},
     {'display': 'Event List', 'icon': 'list', 'route': '/event_list'},
     {'display': 'Task List', 'icon': 'task', 'route': '/task_list'},
     {'display': 'Settings', 'icon': 'settings', 'route': '/settings'},

@@ -391,46 +391,6 @@ class PatientDataManagerAgent:
                 "timestamp": datetime.now().isoformat()
             }
     
-    def search_patients(self, query: str, query_type: str = "name", max_results: int = 10) -> Dict[str, Any]:
-        """환자를 검색합니다."""
-        try:
-            patient_search_tool = PatientSearchTool(data_path=self.data_path)
-            result = patient_search_tool._run(
-                query=query,
-                query_type=query_type,
-                max_results=max_results
-            )
-            return json.loads(result)
-        except Exception as e:
-            return {"error": f"환자 검색 실패: {str(e)}"}
-    
-    def generate_soap_note(self, patient_data: Dict[str, Any]) -> Dict[str, Any]:
-        """SOAP 노트를 생성합니다."""
-        try:
-            soap_generator = SOAPNoteGeneratorTool()
-            result = soap_generator._run(json.dumps(patient_data, ensure_ascii=False))
-            return json.loads(result)
-        except Exception as e:
-            return {"error": f"SOAP 노트 생성 실패: {str(e)}"}
-    
-    def check_drug_interactions(self, medications: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """약물 상호작용을 검사합니다."""
-        try:
-            drug_checker = DrugInteractionCheckerTool()
-            result = drug_checker._run(json.dumps(medications, ensure_ascii=False))
-            return json.loads(result)
-        except Exception as e:
-            return {"error": f"약물 상호작용 검사 실패: {str(e)}"}
-    
-    def assess_urgency(self, patient_data: Dict[str, Any]) -> Dict[str, Any]:
-        """응급도를 평가합니다."""
-        try:
-            urgency_tool = UrgencyAssessmentTool()
-            result = urgency_tool._run(json.dumps(patient_data, ensure_ascii=False))
-            return json.loads(result)
-        except Exception as e:
-            return {"error": f"응급도 평가 실패: {str(e)}"}
-    
     def get_similar_cases(self, symptoms: str, k: int = 5) -> Dict[str, Any]:
         """유사한 증상의 환자 사례를 검색합니다."""
         try:
