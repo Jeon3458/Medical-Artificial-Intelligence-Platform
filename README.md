@@ -49,7 +49,7 @@
       dongwoo  
     </td>
     <td>
-      hyunseong
+      Agent-based Masking via Encapsulation, A2A-based Collaborative Security Workflow
     </td>
     <td>
       Building MCP servers, loading MCPs, building vector stores, generating virtual medical patient data, connecting AI agents to MCPs
