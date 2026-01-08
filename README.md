@@ -1,4 +1,8 @@
-# Hi Medie - Medical AI Platform
+# Hi Medie - Medical AI Platform (Personal Contribution Highlights)
+
+> **Note**: This is a personal repository highlighting my specific contributions to the Medical AI Platform project, focusing on **Privacy-Preserving Agents** and **Agent Collaboration**.
+
+---
 
 <table>
   <tr align="center">
@@ -53,6 +57,24 @@
   </tr>  
 </table>
 
+## My Key Contributions (Hyunseong Jeon)
+
+I took full responsibility for the **Security & Privacy Layer** of the platform, ensuring HIPAA-compliant data handling through autonomous agent orchestration.
+
+### 1. Implementation of A2A (Agent-to-Agent) Based Collaboration Workflow
+* Designed a structured coordination flow where multiple AI agents directly communicate to perform complex medical tasks.
+* Automated the security validation process by establishing a direct communication channel between the task agent and the masking agent.
+
+
+
+### 2. Agent Encapsulation (Agent-as-a-Service)
+* Encapsulated the masking and security logic into a standalone **"Security Agent"** rather than a shared library.
+* This modular approach ensures that the entire system maintains a clean codebase while allowing any new agents to easily integrate privacy features.
+
+### 3. Advanced Masking Engine based on Microsoft Presidio
+* Overcame the limitations of simple regex-based masking by implementing an enterprise-grade engine.
+* Successfully optimized **Microsoft Presidio** to accurately detect and redact sensitive medical PII (Names, SSNs, Patient IDs) within unstructured clinical notes.
+* 
 ## Medical Artificial Intelligence Platform
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
