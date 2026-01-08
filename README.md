@@ -59,22 +59,20 @@
 
 ## My Key Contributions (Hyunseong Jeon)
 
-I took full responsibility for the **Security & Privacy Layer** of the platform, ensuring HIPAA-compliant data handling through autonomous agent orchestration.
+I designed the autonomous security workflow by transforming a standard masking library into a functional AI agent.
 
-### 1. Implementation of A2A (Agent-to-Agent) Based Collaboration Workflow
-* Designed a structured coordination flow where multiple AI agents directly communicate to perform complex medical tasks.
-* Automated the security validation process by establishing a direct communication channel between the task agent and the masking agent.
+### 1. Agent-based Masking via Encapsulation
 
+Concept: Instead of calling a simple function, I encapsulated the Microsoft Presidio library into a standalone "Masking Agent."
 
+Significance: By treating the masking process as an independent agent (Agent-as-a-Service), I ensured the system's modularity, allowing any other agent to easily request security features.
 
-### 2. Agent Encapsulation (Agent-as-a-Service)
-* Encapsulated the masking and security logic into a standalone **"Security Agent"** rather than a shared library.
-* This modular approach ensures that the entire system maintains a clean codebase while allowing any new agents to easily integrate privacy features.
+### 2. A2A-based Collaborative Security Workflow
 
-### 3. Advanced Masking Engine based on Microsoft Presidio
-* Overcame the limitations of simple regex-based masking by implementing an enterprise-grade engine.
-* Successfully optimized **Microsoft Presidio** to accurately detect and redact sensitive medical PII (Names, SSNs, Patient IDs) within unstructured clinical notes.
-* 
+The Process: For example, when a PDF Agent processes a medical document containing sensitive info, it autonomously calls the Masking Agent via the A2A protocol to redact PII before outputting the data.
+
+Autonomous Cooperation: Implemented a "Privacy-by-Design" architecture where agents collaborate to ensure data security without human intervention.
+
 ## Medical Artificial Intelligence Platform
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
