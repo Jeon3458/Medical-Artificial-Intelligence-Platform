@@ -1,6 +1,6 @@
 # Hi Medie - Medical AI Platform (Personal Contribution Highlights)
 
-> **Note**: This is a personal repository highlighting my specific contributions to the Medical AI Platform project, focusing on **Privacy-Preserving Agents** and **Agent Collaboration**.
+> **Note**: This repository focuses on my core contributions: **Encapsulating security libraries into autonomous agents** and implementing **Agent-to-Agent (A2A) collaborative workflows** for medical data privacy.
 
 ---
 
@@ -57,7 +57,7 @@
   </tr>  
 </table>
 
-## My Key Contributions (Hyunseong Jeon)
+## My Key Contributions
 
 I designed the autonomous security workflow by transforming a standard masking library into a functional AI agent.
 
