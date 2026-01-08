@@ -1,322 +1,87 @@
-# LangGraph Currency Agent with A2A Protocol
+# PDF QA 에이전트 (LangGraph)
 
-This sample demonstrates a currency conversion agent built with [LangGraph](https://langchain-ai.github.io/langgraph/) and exposed through the A2A protocol. It showcases conversational interactions with support for multi-turn dialogue and streaming responses.
+의료 문서와 PDF 파일을 분석하고 질의응답을 수행하는 에이전트입니다. LangGraph 프레임워크를 사용하여 구현되었으며, 벡터 데이터베이스를 활용한 효율적인 문서 검색을 제공합니다.
 
-## How It Works
+## 주요 기능
 
-This agent uses LangGraph with Google Gemini to provide currency exchange information through a ReAct agent pattern. The A2A protocol enables standardized interaction with the agent, allowing clients to send requests and receive real-time updates.
+- **문서 분석**
 
-```mermaid
-sequenceDiagram
-    participant Client as A2A Client
-    participant Server as A2A Server
-    participant Agent as LangGraph Agent
-    participant API as Frankfurter API
+  - PDF 파일 파싱 및 구조화
+  - 의료 문서 텍스트 추출
+  - 문서 메타데이터 관리
 
-    Client->>Server: Send task with currency query
-    Server->>Agent: Forward query to currency agent
+- **질의응답**
 
-    alt Complete Information
-        Agent->>API: Call get_exchange_rate tool
-        API->>Agent: Return exchange rate data
-        Agent->>Server: Process data & return result
-        Server->>Client: Respond with currency information
-    else Incomplete Information
-        Agent->>Server: Request additional input
-        Server->>Client: Set state to "input-required"
-        Client->>Server: Send additional information
-        Server->>Agent: Forward additional info
-        Agent->>API: Call get_exchange_rate tool
-        API->>Agent: Return exchange rate data
-        Agent->>Server: Process data & return result
-        Server->>Client: Respond with currency information
-    end
+  - 자연어 기반 문서 검색
+  - 컨텍스트 기반 답변 생성
+  - 관련 문서 추천
 
-    alt With Streaming
-        Note over Client,Server: Real-time status updates
-        Server->>Client: "Looking up exchange rates..."
-        Server->>Client: "Processing exchange rates..."
-        Server->>Client: Final result
-    end
+- **벡터 검색**
+  - ChromaDB 기반 벡터 저장소
+  - 의미론적 검색
+  - 유사 문서 추천
+
+## 설치 방법
+
+1. 의존성 설치:
+
+```bash
+pip install -e .  # pyproject.toml 기반 설치
 ```
 
-## Key Features
+2. 환경 변수 설정:
 
-- **Multi-turn Conversations**: Agent can request additional information when needed
-- **Real-time Streaming**: Provides status updates during processing
-- **Push Notifications**: Support for webhook-based notifications
-- **Conversational Memory**: Maintains context across interactions
-- **Currency Exchange Tool**: Integrates with Frankfurter API for real-time rates
-
-## Prerequisites
-
-- Python 3.13 or higher
-- [UV](https://docs.astral.sh/uv/)
-- Access to an LLM and API Key
-
-## Setup & Running
-
-1. Navigate to the samples directory:
-
-   ```bash
-   cd samples/python/agents/langgraph
-   ```
-
-2. Create an environment file with your API key:
-
-   ```bash
-   echo "GOOGLE_API_KEY=your_api_key_here" > .env
-   ```
-
-3. Run the agent:
-
-   ```bash
-   # Basic run on default port 10000
-   uv run .
-
-   # On custom host/port
-   uv run . --host 0.0.0.0 --port 8080
-   ```
-
-4. In a separate terminal, run an A2A [client](/samples/python/hosts/README.md):
-
-   ```bash
-   cd samples/python/hosts/cli
-   uv run .
-   ```
-
-## Technical Implementation
-
-- **LangGraph ReAct Agent**: Uses the ReAct pattern for reasoning and tool usage
-- **Streaming Support**: Provides incremental updates during processing
-- **Checkpoint Memory**: Maintains conversation state between turns
-- **Push Notification System**: Webhook-based updates with JWK authentication
-- **A2A Protocol Integration**: Full compliance with A2A specifications
-
-## Limitations
-
-- Only supports text-based input/output (no multi-modal support)
-- Uses Frankfurter API which has limited currency options
-- Memory is session-based and not persisted between server restarts
-
-## Examples
-
-**Synchronous request**
-
-Request:
-
-```
-POST http://localhost:10000
-Content-Type: application/json
-
-{
-  "jsonrpc": "2.0",
-  "id": 11,
-  "method": "tasks/send",
-  "params": {
-    "id": "129",
-    "sessionId": "8f01f3d172cd4396a0e535ae8aec6687",
-    "acceptedOutputModes": [
-      "text"
-    ],
-    "message": {
-      "role": "user",
-      "parts": [
-        {
-          "type": "text",
-          "text": "How much is the exchange rate for 1 USD to INR?"
-        }
-      ]
-    }
-  }
-}
+```bash
+# OpenAI API 키 설정
+export OPENAI_API_KEY=your_api_key_here
 ```
 
-Response:
+## 실행 방법
 
-```
-{
-  "jsonrpc": "2.0",
-  "id": 11,
-  "result": {
-    "id": "129",
-    "status": {
-      "state": "completed",
-      "timestamp": "2025-04-02T16:53:29.301828"
-    },
-    "artifacts": [
-      {
-        "parts": [
-          {
-            "type": "text",
-            "text": "The exchange rate for 1 USD to INR is 85.49."
-          }
-        ],
-        "index": 0
-      }
-    ],
-    "history": []
-  }
-}
+```bash
+# A2A 서버 시작
+python __main__.py
 ```
 
-**Multi-turn example**
+## API 엔드포인트
 
-Request - Seq 1:
+- A2A 서버: `http://localhost:10003`
+  - `/health`: 서버 상태 확인
+  - `/a2a`: A2A 프로토콜 엔드포인트
+  - `/query`: 문서 질의응답
+  - `/search`: 문서 검색
 
-```
-POST http://localhost:10000
-Content-Type: application/json
+## 문서 처리 파이프라인
 
-{
-  "jsonrpc": "2.0",
-  "id": 10,
-  "method": "tasks/send",
-  "params": {
-    "id": "130",
-    "sessionId": "a9bb617f2cd94bd585da0f88ce2ddba2",
-    "acceptedOutputModes": [
-      "text"
-    ],
-    "message": {
-      "role": "user",
-      "parts": [
-        {
-          "type": "text",
-          "text": "How much is the exchange rate for 1 USD?"
-        }
-      ]
-    }
-  }
-}
-```
+1. **문서 수집**
 
-Response - Seq 2:
+   - PDF 파일 업로드
+   - 문서 형식 검증
+   - 메타데이터 추출
 
-```
-{
-  "jsonrpc": "2.0",
-  "id": 10,
-  "result": {
-    "id": "130",
-    "status": {
-      "state": "input-required",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "type": "text",
-            "text": "Which currency do you want to convert to? Also, do you want the latest exchange rate or a specific date?"
-          }
-        ]
-      },
-      "timestamp": "2025-04-02T16:57:02.336787"
-    },
-    "history": []
-  }
-}
-```
+2. **문서 처리**
 
-Request - Seq 3:
+   - 텍스트 추출
+   - 구조화된 데이터 변환
+   - 벡터 임베딩 생성
 
-```
-POST http://localhost:10000
-Content-Type: application/json
+3. **저장 및 인덱싱**
 
-{
-  "jsonrpc": "2.0",
-  "id": 10,
-  "method": "tasks/send",
-  "params": {
-    "id": "130",
-    "sessionId": "a9bb617f2cd94bd585da0f88ce2ddba2",
-    "acceptedOutputModes": [
-      "text"
-    ],
-    "message": {
-      "role": "user",
-      "parts": [
-        {
-          "type": "text",
-          "text": "CAD"
-        }
-      ]
-    }
-  }
-}
-```
+   - ChromaDB에 벡터 저장
+   - 메타데이터 인덱싱
+   - 검색 최적화
 
-Response - Seq 4:
+4. **질의응답**
+   - 질문 분석
+   - 관련 문서 검색
+   - 답변 생성
 
-```
-{
-  "jsonrpc": "2.0",
-  "id": 10,
-  "result": {
-    "id": "130",
-    "status": {
-      "state": "completed",
-      "timestamp": "2025-04-02T16:57:40.033328"
-    },
-    "artifacts": [
-      {
-        "parts": [
-          {
-            "type": "text",
-            "text": "The current exchange rate is 1 USD = 1.4328 CAD."
-          }
-        ],
-        "index": 0
-      }
-    ],
-    "history": []
-  }
-}
-```
+## 주의사항
 
-**Streaming example**
+- 의료 문서는 HIPAA 규정을 준수하여 처리해야 합니다.
+- 민감한 의료 정보가 포함된 문서는 반드시 암호화해야 합니다.
+- 개발/테스트 환경에서는 실제 환자 문서를 사용하지 마세요.
 
-Request:
+## 라이선스
 
-```
-{
-  "jsonrpc": "2.0",
-  "id": 12,
-  "method": "tasks/sendSubscribe",
-  "params": {
-    "id": "131",
-    "sessionId": "cebd704d0ddd4e8aa646aeb123d60614",
-    "acceptedOutputModes": [
-      "text"
-    ],
-    "message": {
-      "role": "user",
-      "parts": [
-        {
-          "type": "text",
-          "text": "How much is 100 USD in GBP?"
-        }
-      ]
-    }
-  }
-}
-```
-
-Response:
-
-```
-data: {"jsonrpc":"2.0","id":12,"result":{"id":"131","status":{"state":"working","message":{"role":"agent","parts":[{"type":"text","text":"Looking up the exchange rates..."}]},"timestamp":"2025-04-02T16:59:34.578939"},"final":false}}
-
-data: {"jsonrpc":"2.0","id":12,"result":{"id":"131","status":{"state":"working","message":{"role":"agent","parts":[{"type":"text","text":"Processing the exchange rates.."}]},"timestamp":"2025-04-02T16:59:34.737052"},"final":false}}
-
-data: {"jsonrpc":"2.0","id":12,"result":{"id":"131","artifact":{"parts":[{"type":"text","text":"Based on the current exchange rate, 1 USD is equivalent to 0.77252 GBP. Therefore, 100 USD would be approximately 77.252 GBP."}],"index":0,"append":false}}}
-
-data: {"jsonrpc":"2.0","id":12,"result":{"id":"131","status":{"state":"completed","timestamp":"2025-04-02T16:59:35.331844"},"final":true}}
-```
-
-## Learn More
-
-- [A2A Protocol Documentation](https://google.github.io/A2A/#/documentation)
-- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
-- [Frankfurter API](https://www.frankfurter.app/docs/)
-- [Google Gemini API](https://ai.google.dev/gemini-api)
+© 2024 Medical AI Platform Team. All rights reserved.

@@ -2,6 +2,7 @@ import base64
 import datetime
 import json
 import os
+import sys
 import uuid
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from dotenv import load_dotenv
@@ -198,13 +199,24 @@ class ADKHostManager(ApplicationManager):
         )
         self.add_task(task)
         
-        # Extract user prompt
+        # Extract user prompt and check for image data
         prompt = "\n".join([part.text for part in message.parts if hasattr(part, 'text') and part.text])
+        has_image = any(hasattr(part, 'file') and part.file for part in message.parts)
+        
+        # If image is present, add medical_image_analysis to needed agents
+        if has_image:
+            print(f"[A2A Orchestrator] 이미지 첨부 감지됨")
         
         # A2A Orchestration: Analyze intent and route to appropriate agents
         intent_analysis = self._classify_intent(prompt)
         routing_strategy = intent_analysis["routing_strategy"]
         needed_agents = intent_analysis["needed_agents"]
+        
+        # Override routing if image is present
+        if has_image:
+            needed_agents.append("medical_image_analysis")
+            routing_strategy = "single_agent"
+            print(f"[A2A Orchestrator] 이미지 첨부로 인한 강제 의료 영상 분석 라우팅")
         
         print(f"[A2A Orchestrator] Intent: {needed_agents}, Strategy: {routing_strategy}")
         
@@ -218,6 +230,61 @@ class ADKHostManager(ApplicationManager):
         elif routing_strategy == "single_agent" and "patient_search" in needed_agents:
             # Use medical agent for patient data search
             agent_response = await self._call_medical_agent(prompt, conversation_id)
+            
+        elif routing_strategy == "single_agent" and "medical_image_analysis" in needed_agents:
+            # 🚀 새로운 Simple Vision Pipeline 사용
+            print(f"[A2A Orchestrator] 🔍 Simple Vision Pipeline 시작: {prompt}")
+            
+            try:
+                # A2A 프로토콜로 Medical Image Agent에 요청
+                print(f"[A2A Orchestrator] 📊 A2A Medical Image Agent 호출...")
+                
+                image_analysis = await self._call_medical_image_agent_with_image(message, prompt, conversation_id)
+                self._create_event("A2A Medical Image Agent", "영상 분석 완료", conversation_id)
+                print(f"[A2A Orchestrator] ✅ A2A 분석 완료, HyperCLOVAX 처리 시작...")
+                    
+            except Exception as e:
+                print(f"[A2A Orchestrator] ❌ A2A Medical Image Agent 실패: {e}")
+                image_analysis = f"""
+의료 영상 분석 중 기술적 오류가 발생했습니다.
+
+**오류 내용:** {str(e)}
+
+다음과 같이 안내해주세요:
+- 기술적 문제로 영상 분석이 일시적으로 어려움
+- 영상을 다시 업로드해보거나 잠시 후 재시도 권장
+- 응급한 경우 직접 전문의 상담 권고
+"""
+            
+            # HyperCLOVAX로 종합 의료 소견 생성
+            enhanced_prompt = f"""
+다음은 AI 의료 영상 분석 결과입니다. 이를 바탕으로 전문적인 의료 소견을 제공해주세요:
+
+**사용자 요청:** {prompt}
+
+**AI 영상 분석 결과:**
+{image_analysis}
+
+위 분석 결과를 바탕으로 다음과 같은 전문적인 의료 소견을 제공해주세요:
+1. 영상 분석 요약
+2. 임상적 해석
+3. 의료진 권장사항
+4. 환자 안내사항
+
+전문의 수준의 정확하고 신뢰할 수 있는 의료 소견을 제공해주세요.
+"""
+            
+            medical_interpretation = self.call_llama4(enhanced_prompt)
+            self._create_event("HyperCLOVAX Medical AI", "의료 소견 해석 완료", conversation_id)
+            
+            # HyperCLOVAX 종합 분석 결과만 출력 (중복 제거)
+            agent_response = f"""## 🏥 의료 영상 종합 소견
+
+{medical_interpretation}
+
+---
+*본 분석은 AI 보조 도구로 생성된 결과이며, 최종 진단은 반드시 전문의와 상담하시기 바랍니다.*
+"""
             
         elif routing_strategy == "pdf_only":
             # Use PDF QA agent for document analysis
@@ -409,10 +476,22 @@ class ADKHostManager(ApplicationManager):
         
         patterns = {
             "patient_search": [r"환자.*정보", r".*환자.*찾", r"홍길\d+", r"김철\d+", r".*환자.*목록", r"병원.*내.*환자"],
-            "medical_analysis": [r"진단", r"치료.*계획", r"소견", r"분석", r"어떻게.*생각", r"권장", r"추천", r"치료계획서"],
+            "medical_image_analysis": [
+                r"의료.*영상.*분석", r"영상.*분석", r"이미지.*분석", r"엑스레이.*분석", r"X-ray.*분석", 
+                r"CT.*분석", r"MRI.*분석", r"초음파.*분석", r"유방촬영.*분석",
+                r"업로드.*영상", r"업로드.*이미지", r"영상.*진단", r"이미지.*진단",
+                r"DICOM.*분석", r"의료.*이미지", r"방사선.*영상", r"촬영.*분석",
+                r"흉부.*X-ray", r"뇌.*CT", r"뇌.*MRI", r"복부.*CT", r"척추.*MRI",
+                r"결절.*분석", r"병변.*분석", r"소견.*확인", r"이상.*소견",
+                r"\.png.*분석", r"\.jpg.*분석", r"\.dcm.*분석", r"\.dicom.*분석",
+                r"의료.*사진", r"의료영상.*해석", r"방사선.*판독", r"영상의학.*소견",
+                r"촬영.*이미지", r"검사.*영상", r"스캔.*결과", r"영상.*판독",
+                r"이미지.*해석", r"영상.*소견", r"의료.*스캔", r"진단.*영상"
+            ],
+            "medical_analysis": [r"진단", r"치료.*계획", r"소견", r"어떻게.*생각", r"권장", r"추천", r"치료계획서"],
             "documentation": [r"SOAP", r"노트.*작성", r"보고서", r"기록"],
             "safety_check": [r"약물.*상호작용", r"부작용", r"금기", r"알레르기"],
-            "pdf_analysis": [r"\.pdf", r"PDF", r"문서.*분석", r"스캔.*결과", r"검사.*결과", r"보고서.*분석", r"CT", r"MRI", r"X-ray", r"엑스레이", r"가이드라인", r"지침서"],
+            "pdf_analysis": [r"\.pdf", r"PDF", r"문서.*분석", r"검사.*결과", r"보고서.*분석", r"가이드라인", r"지침서"],
             "general_medical": [r"당뇨병", r"고혈압", r"치료법", r"증상", r"관리"]
         }
         
@@ -438,6 +517,8 @@ class ADKHostManager(ApplicationManager):
                 routing_strategy = "single_agent"
             elif needed_agents[0] == "pdf_analysis":
                 routing_strategy = "pdf_only"
+            elif needed_agents[0] == "medical_image_analysis":
+                routing_strategy = "single_agent"
             else:
                 routing_strategy = "hyperclova_only"
         # 특별 케이스: PDF + 환자 + 치료계획 = 순차적 처리 (PDF → 환자 → 분석)
@@ -512,6 +593,220 @@ class ADKHostManager(ApplicationManager):
         except Exception as e:
             print(f"의료 에이전트 호출 중 오류: {e}")
             return f"의료 에이전트 호출 중 오류가 발생했습니다: {str(e)}"
+
+    async def _call_medical_image_agent(self, prompt: str, conversation_id: str) -> str:
+        """의료 영상 분석 에이전트 호출"""
+        if not self._agents:
+            print("[DEBUG] 등록된 에이전트가 없음")
+            return self._fallback_image_analysis(prompt)
+        
+        # 의료 영상 분석 에이전트 찾기 (포트 10002 또는 이름으로 식별)
+        medical_image_agent = None
+        for agent in self._agents:
+            print(f"[DEBUG] 검사 중인 에이전트: {agent.name} - {agent.url}")
+            if ("10002" in agent.url or 
+                "Medical Image" in agent.name or 
+                "영상" in agent.name or
+                "이미지" in agent.name):
+                medical_image_agent = agent
+                break
+        
+        if not medical_image_agent:
+            print("[DEBUG] 의료 영상 분석 에이전트를 찾을 수 없음")
+            return self._fallback_image_analysis(prompt)
+        
+        try:
+            import aiohttp
+            import json
+            
+            print(f"[DEBUG] 의료 영상 분석 에이전트 호출: {medical_image_agent.url}")
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "method": "tasks/send",
+                    "params": {
+                        "task": {"text": prompt},
+                        "sessionId": conversation_id
+                    },
+                    "id": 123
+                }
+                
+                print(f"[DEBUG] 요청 페이로드: {payload}")
+                
+                async with session.post(
+                    medical_image_agent.url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"}
+                ) as response:
+                    print(f"[DEBUG] 응답 상태: {response.status}")
+                    
+                    if response.status == 200:
+                        result = await response.json()
+                        print(f"[DEBUG] 응답 결과: {result}")
+                        
+                        if result.get("result") and result["result"].get("artifacts"):
+                            agent_response = result["result"]["artifacts"][0]["parts"][0]["text"]
+                            self._create_event(medical_image_agent.name, "의료 영상 분석 완료", conversation_id)
+                            return agent_response
+                        elif result.get("result"):
+                            # artifacts가 없지만 result가 있는 경우
+                            agent_response = str(result["result"])
+                            self._create_event(medical_image_agent.name, "의료 영상 분석 완료", conversation_id)
+                            return agent_response
+                        else:
+                            print("[DEBUG] 응답에 artifacts가 없음")
+                            return self._fallback_image_analysis(prompt)
+                    else:
+                        error_text = await response.text()
+                        print(f"[DEBUG] 에러 응답: {error_text}")
+                        return self._fallback_image_analysis(prompt)
+                        
+        except Exception as e:
+            print(f"[DEBUG] 의료 영상 분석 에이전트 호출 중 오류: {e}")
+            return self._fallback_image_analysis(prompt)
+    
+    def _fallback_image_analysis(self, prompt: str) -> str:
+        """의료 영상 분석 에이전트가 실패했을 때 HyperCLOVAX로 fallback 분석"""
+        print("[DEBUG] Fallback: HyperCLOVAX로 의료 영상 분석 수행")
+        
+        # HyperCLOVAX를 이용한 의료 영상 분석
+        fallback_prompt = f"""
+당신은 의료 영상의학과 전문의입니다. 다음 요청에 대해 전문적인 의료 소견을 제공해주세요:
+
+사용자 요청: {prompt}
+
+업로드된 의료 영상에 대해 다음 형식으로 분석해주세요:
+
+## 🏥 의료 영상 분석 소견
+
+### 1. 영상 종류 및 품질 평가
+- 영상 모달리티 (X-ray, CT, MRI 등)
+- 영상 품질 및 진단 적합성
+- 촬영 기법의 적절성
+
+### 2. 해부학적 구조 분석
+- 관찰되는 해부학적 구조물
+- 정상 소견과 비교
+- 대칭성 및 위치 관계
+
+### 3. 병리학적 소견
+- 이상 소견 유무
+- 병변의 특성 (크기, 형태, 위치)
+- 가능한 진단 고려사항
+
+### 4. 임상적 의미
+- 발견된 소견의 임상적 중요성
+- 응급도 평가
+- 추가 검사 필요성
+
+### 5. 권장사항
+- 치료 방향 제안
+- 추적 관찰 계획
+- 환자 교육 사항
+
+**주의사항:**
+- 이는 AI 보조 분석이며, 최종 진단은 반드시 전문의와 상담
+- 응급 상황 시 즉시 의료진 방문 권장
+
+전문적이고 정확한 의료 소견을 제공해주세요.
+"""
+        
+        return self.call_llama4(fallback_prompt)
+
+    async def _call_medical_image_agent_with_image(self, message: Message, prompt: str, conversation_id: str) -> str:
+        """이미지 데이터와 함께 의료 영상 분석 에이전트 호출"""
+        if not self._agents:
+            print("[DEBUG] 등록된 에이전트가 없음")
+            return self._fallback_image_analysis(prompt)
+        
+        # 의료 영상 분석 에이전트 찾기
+        medical_image_agent = None
+        for agent in self._agents:
+            print(f"[DEBUG] 검사 중인 에이전트: {agent.name} - {agent.url}")
+            if ("10002" in agent.url or 
+                "Medical Image" in agent.name or 
+                "영상" in agent.name or
+                "이미지" in agent.name):
+                medical_image_agent = agent
+                break
+        
+        if not medical_image_agent:
+            print("[DEBUG] 의료 영상 분석 에이전트를 찾을 수 없음")
+            return self._fallback_image_analysis(prompt)
+        
+        try:
+            import aiohttp
+            import json
+            
+            print(f"[DEBUG] 의료 영상 분석 에이전트 호출 (이미지 포함): {medical_image_agent.url}")
+            
+            # 메시지의 모든 파트를 포함하여 전송
+            task_data = {
+                "text": prompt,
+                "parts": []
+            }
+            
+            # 메시지의 모든 파트를 task_data에 추가
+            for part in message.parts:
+                if hasattr(part, 'text') and part.text:
+                    task_data["parts"].append({
+                        "type": "text",
+                        "content": part.text
+                    })
+                elif hasattr(part, 'file') and part.file:
+                    task_data["parts"].append({
+                        "type": "file",
+                        "file": {
+                            "name": part.file.name,
+                            "mimeType": part.file.mimeType,
+                            "bytes": part.file.bytes
+                        }
+                    })
+            
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=60)) as session:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "method": "tasks/send",
+                    "params": {
+                        "task": task_data,
+                        "sessionId": conversation_id
+                    },
+                    "id": 123
+                }
+                
+                print(f"[DEBUG] 요청 페이로드 (이미지 포함): {json.dumps(payload, indent=2, default=str)[:500]}...")
+                
+                async with session.post(
+                    medical_image_agent.url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"}
+                ) as response:
+                    print(f"[DEBUG] 응답 상태: {response.status}")
+                    
+                    if response.status == 200:
+                        result = await response.json()
+                        print(f"[DEBUG] 응답 결과: {str(result)[:500]}...")
+                        
+                        if result.get("result") and result["result"].get("artifacts"):
+                            agent_response = result["result"]["artifacts"][0]["parts"][0]["text"]
+                            self._create_event(medical_image_agent.name, "의료 영상 분석 완료", conversation_id)
+                            return agent_response
+                        elif result.get("result"):
+                            agent_response = str(result["result"])
+                            self._create_event(medical_image_agent.name, "의료 영상 분석 완료", conversation_id)
+                            return agent_response
+                        else:
+                            print("[DEBUG] 응답에 결과가 없음")
+                            return self._fallback_image_analysis(prompt)
+                    else:
+                        error_text = await response.text()
+                        print(f"[DEBUG] 에러 응답: {error_text}")
+                        return self._fallback_image_analysis(prompt)
+                        
+        except Exception as e:
+            print(f"[DEBUG] 의료 영상 분석 에이전트 호출 중 오류: {e}")
+            return self._fallback_image_analysis(prompt)
 
     async def _call_pdf_agent(self, prompt: str, conversation_id: str) -> str:
         """PDF QA 에이전트 호출"""
@@ -803,13 +1098,18 @@ class ADKHostManager(ApplicationManager):
         self._initialize_host()
 
     def register_pdf_agent(self):
-        """PDF QA 에이전트를 자동으로 등록"""
+        """PDF QA 에이전트 자동 등록 비활성화 - A2A 협업으로 처리"""
+        # PDF QA 기능은 A2A 협업을 통해 자동으로 처리되므로 별도 등록 불필요
+        print(f"[A2A] PDF QA 기능은 에이전트 협업으로 처리됩니다.")
+
+    def register_medical_image_agent(self):
+        """Medical Image Agent를 자동으로 등록"""
         try:
-            pdf_agent_url = "http://localhost:10000"
-            self.register_agent(pdf_agent_url)
-            print(f"[A2A] PDF QA Agent 등록 완료: {pdf_agent_url}")
+            medical_image_agent_url = "http://localhost:10002"
+            self.register_agent(medical_image_agent_url)
+            print(f"[A2A] Medical Image Agent 등록 완료: {medical_image_agent_url}")
         except Exception as e:
-            print(f"[A2A] PDF QA Agent 등록 실패: {e}")
+            print(f"[A2A] Medical Image Agent 등록 실패: {e}")
 
     @property
     def agents(self) -> list[AgentCard]:

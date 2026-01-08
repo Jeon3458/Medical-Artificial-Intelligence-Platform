@@ -9,9 +9,17 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from hi_medei.samples.python.agents.langgraph.agent import PDFQAAgent
-from hi_medei.samples.python.common.server.task_manager import InMemoryTaskManager
-from hi_medei.samples.python.common.types import (
+# 공통 모듈 경로 추가
+common_path = os.path.join(project_root, "hi_medei", "samples", "python")
+if common_path not in sys.path:
+    sys.path.insert(0, common_path)
+
+# 상대 임포트로 로컬 모듈 가져오기
+from .agent import PDFQAAgent
+
+# 공통 모듈은 절대 경로로 가져오기
+from common.server.task_manager import InMemoryTaskManager
+from common.types import (
     Artifact,
     InternalError,
     InvalidParamsError,
@@ -40,11 +48,6 @@ class TaskProgress:
         self.final = final
         self.resultFraction = resultFraction  
         self.output = output
-
-class TaskCompletionOutput:
-    """작업 완료 출력을 나타내는 클래스"""
-    def __init__(self, content=None):
-        self.content = content or []
 
 class TaskUpdateParams:
     """작업 업데이트 매개변수 클래스"""

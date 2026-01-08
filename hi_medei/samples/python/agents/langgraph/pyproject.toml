@@ -1,17 +1,21 @@
 [project]
-name = "a2a-sample-agent-langgraph"
+name = "a2a-sample-agent-pdf-qa"
 version = "0.1.0"
-description = "Sample LangGraph currency agent with A2A Protocol"
+description = "Sample PDF QA agent with A2A Protocol using OpenAI and ChromaDB"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "a2a-samples",
     "click>=8.1.8",
-    "httpx>=0.28.1",
-    "langchain-google-genai>=2.0.10",
-    "langgraph>=0.3.18",
     "pydantic>=2.10.6",
     "python-dotenv>=1.1.0",
+    "chromadb>=0.4.0",
+    "langchain-openai>=0.1.0",
+    "langchain>=0.1.0",
+    "langchain-community>=0.0.1",
+    "PyPDF2>=3.0.0",
+    "starlette>=0.27.0",
+    "uvicorn>=0.23.0",
 ]
 
 [tool.hatch.build.targets.wheel]
