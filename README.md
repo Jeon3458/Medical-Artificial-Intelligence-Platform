@@ -1,6 +1,6 @@
-# Hi Medie - Medical AI Platform (Personal Contribution Highlights)
+# Hi Medie - Medical AI Platform (Team Project Work)
 
-> **Note**: This repository focuses on my core contributions: **Encapsulating security libraries into autonomous agents** and implementing **Agent-to-Agent (A2A) collaborative workflows** for medical data privacy.
+> **Note**: This is a fork of the team repository [HSU-AviationComputer-DevTeam/Medical-Artificial-Intelligence-Platform](https://github.com/HSU-AviationComputer-DevTeam/Medical-Artificial-Intelligence-Platform), built by a 4-person undergraduate team at Hanseo University in 2025. My original GitHub account is no longer accessible, so my commits from the project period do not appear in this history.
 
 ---
 
@@ -49,7 +49,7 @@
       dongwoo  
     </td>
     <td>
-      Agent-based Masking via Encapsulation, A2A-based Collaborative Security Workflow
+      PHI masking agent (Presidio + FastAPI)
     </td>
     <td>
       Building MCP servers, loading MCPs, building vector stores, generating virtual medical patient data, connecting AI agents to MCPs
@@ -57,23 +57,24 @@
   </tr>  
 </table>
 
-## My Key Contributions
+## My Contribution
 
-I designed the autonomous security workflow by transforming a standard masking library into a functional AI agent.
+I proposed and built the **PHI Masking Agent** (`hi_medei/samples/python/agents/masking_agent`).
 
-### 1. Agent-based Masking via Encapsulation
+- Wrapped Microsoft Presidio's `AnalyzerEngine` in a FastAPI service, so other agents can request masking as a separate service.
+- Added a custom recognizer for Korean mobile phone numbers (`01X-XXXX-XXXX`).
+- Exposed an A2A-style agent card at `/.well-known/agent.json` and a masking endpoint at `/a2a`.
+- Connected the service to the Medical Agent, which sends each response for masking before it returns the response and stores it in conversation memory.
 
-Concept: Instead of calling a simple function, I encapsulated the Microsoft Presidio library into a standalone "Masking Agent."
+**Current limitations**
 
-Significance: By treating the masking process as an independent agent (Agent-as-a-Service), I ensured the system's modularity, allowing any other agent to easily request security features.
+- Only Korean mobile phone numbers are masked. Names, resident registration numbers, and email addresses are not handled yet.
+- The Medical Agent calls the service with a plain HTTP request, not the full A2A JSON-RPC protocol.
+- If the masking service is unavailable, the Medical Agent returns the unmasked text.
 
-### 2. A2A-based Collaborative Security Workflow
+The rest of the platform (vector stores, MCP servers, the Medical Agent, and the PDF and image agents) was built by my teammates.
 
-The Process: For example, when a PDF Agent processes a medical document containing sensitive info, it autonomously calls the Masking Agent via the A2A protocol to redact PII before outputting the data.
-
-Autonomous Cooperation: Implemented a "Privacy-by-Design" architecture where agents collaborate to ensure data security without human intervention.
-
-## Medical Artificial Intelligence Platform
+## Team Platform Overview (original team README)
 
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.8+-green.svg)
